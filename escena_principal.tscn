@@ -1,0 +1,170 @@
+[gd_scene load_steps=24 format=3 uid="uid://cakt72b13m6pq"]
+
+[ext_resource type="Script" uid="uid://cx0njjlqgmigb" path="res://scripts/camara_3d_orbital_simple.gd" id="1_jdg2m"]
+[ext_resource type="Script" uid="uid://phkh7set0rci" path="res://scripts/script_raiz.gd" id="1_r0811"]
+[ext_resource type="Script" uid="uid://dpvavkpyi3njn" path="res://scripts/ejes3D.gd" id="3_hcujj"]
+[ext_resource type="Script" uid="uid://cxbf3m06pdq80" path="res://scripts/nodos/shoulder_pivot.gd" id="4_rftnj"]
+[ext_resource type="Script" uid="uid://c1v3c8f77arlm" path="res://scripts/nodos/elbow_pivot.gd" id="5_0or06"]
+[ext_resource type="ArrayMesh" uid="uid://ckwcwm5ompuvx" path="res://modelos_3D/hand/hand.OBJ" id="6_afc6g"]
+[ext_resource type="Script" uid="uid://djd71yyu2na4w" path="res://scripts/nodos/wrist_pivot.gd" id="6_iupgd"]
+[ext_resource type="ArrayMesh" uid="uid://804y8dhsa0sw" path="res://modelos_3D/cigarret/model.obj" id="8_lhnnm"]
+[ext_resource type="Script" uid="uid://dhburowo3yuox" path="res://scripts/nodos/piti.gd" id="9_hgi0t"]
+[ext_resource type="Script" uid="uid://ctwr1os3sc60u" path="res://adicionales/grafo_estrella_x.gd" id="10_5e3jd"]
+[ext_resource type="Script" uid="uid://5c6tormmvcm8" path="res://adicionales/grafo_cubos.gd" id="11_1xgag"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hcujj"]
+albedo_color = Color(0.08414119, 0.5793243, 0.9617589, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_hcujj"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_0or06"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lhnnm"]
+albedo_color = Color(0.7764706, 0.44313726, 0.4117647, 1)
+metallic_specular = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5e3jd"]
+albedo_color = Color(0.9372549, 0.4, 0.18039216, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_1xgag"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_hgi0t"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_rftnj"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rftnj"]
+albedo_color = Color(0, 0, 0, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_0or06"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_afc6g"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iupgd"]
+albedo_color = Color(0, 0, 0, 1)
+
+[node name="Escena principal" type="Node3D"]
+script = ExtResource("1_r0811")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.30515698, 0.8223739, -0.48018777, -0.89113325, 0.42439947, 0.16051956, 0.3357985, 0.3789276, 0.8623532, -3.8322492, 1.9664729, 6.2548275)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.34, 1.5)
+current = true
+fov = 90.0
+near = 0.001
+script = ExtResource("1_jdg2m")
+
+[node name="GraphP3" type="Node3D" parent="."]
+
+[node name="Ejes3D" type="Node3D" parent="."]
+visible = false
+script = ExtResource("3_hcujj")
+
+[node name="Smoker" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
+
+[node name="Body" type="MeshInstance3D" parent="Smoker"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+material_override = SubResource("StandardMaterial3D_hcujj")
+mesh = SubResource("CapsuleMesh_hcujj")
+skeleton = NodePath("../..")
+
+[node name="Arm" type="Node3D" parent="Smoker/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.54845816, 0.60881734, 0)
+
+[node name="ShoulderPivot" type="Node3D" parent="Smoker/Body/Arm"]
+transform = Transform3D(1, 0, 0, 0, 0.4524347, 0.8917975, 0, -0.8917975, 0.4524347, 0, 3.8146973e-06, 0)
+script = ExtResource("4_rftnj")
+
+[node name="ShoulderMesh" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot"]
+transform = Transform3D(0.1, 0, 0, 0, 0.25, 0, 0, 0, 0.1, 0, -0.26064765, 0)
+mesh = SubResource("CylinderMesh_0or06")
+
+[node name="Forearm" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot"]
+transform = Transform3D(1.0000001, 0, 0, 0, 1.0000001, 0, 0, 0, 1, 0, -0.5131948, -1.1920929e-07)
+
+[node name="ElbowPivot" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm"]
+transform = Transform3D(0.9342044, -0.35673797, 0, 0.35673797, 0.9342044, 0, 0, 0, 0.99999994, 0, 0, 0)
+script = ExtResource("5_0or06")
+
+[node name="AntebrazoMesh" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot"]
+transform = Transform3D(0.10000002, 0, 0, 0, 0.25, 0, 0, 7.1054274e-15, 0.10000002, 0, -0.2511239, 2.9936295e-08)
+mesh = SubResource("CylinderMesh_0or06")
+skeleton = NodePath("../../..")
+
+[node name="Wrist" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot"]
+transform = Transform3D(1.0000001, 0, 0, 0, 1.0000001, 0, 0, -1.19209275e-07, 1.0000001, 0, -0.50813454, 6.0574344e-08)
+
+[node name="WristPivot" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist"]
+script = ExtResource("6_iupgd")
+
+[node name="Hand" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivot"]
+transform = Transform3D(0.04745297, -0.036779225, 0.00023288094, 0.036675967, 0.04734643, 0.004211675, -0.0027637202, -0.003186578, 0.059889555, -0.001932323, -0.2139647, -0.008010119)
+material_override = SubResource("StandardMaterial3D_lhnnm")
+mesh = ExtResource("6_afc6g")
+
+[node name="Piti" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivot/Hand"]
+transform = Transform3D(-0.40249193, 2.6645033, -3.4297523, -0.07450256, 3.4397085, 2.6809769, 4.3424897, 0.30597913, -0.27189702, -1.0033538, 0.1993885, 0.4675557)
+mesh = ExtResource("8_lhnnm")
+skeleton = NodePath("../..")
+script = ExtResource("9_hgi0t")
+mouth_path = NodePath("../../../../../../../../../Head/Cara/Boca")
+
+[node name="MouthEnd" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivot/Hand/Piti"]
+transform = Transform3D(1, 0, -7.450581e-09, -2.842171e-14, 1, 7.993606e-15, 0, 2.842171e-14, 1, -0.017512292, 1.1920929e-07, -0.29828262)
+
+[node name="FireEnd" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivot/Hand/Piti"]
+transform = Transform3D(0.08, 2.6193442e-10, -6.106409e-17, 0, -6.556708e-10, -0.08, -1.3969835e-09, 0.015, -3.496911e-09, 0.00077295303, -9.596348e-05, 0.5021486)
+material_override = SubResource("StandardMaterial3D_5e3jd")
+mesh = SubResource("CylinderMesh_1xgag")
+
+[node name="Smoke" type="CPUParticles3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivot/Hand/Piti"]
+transform = Transform3D(1, 1.4210855e-14, -3.2816614e-28, -1.4210855e-14, 1, -1.4210855e-14, 1.2621774e-28, 1.4210855e-14, 1, 0.0306454, -1.1920929e-07, 0.52197504)
+emitting = false
+amount = 100
+lifetime = 3.88
+lifetime_randomness = 0.7
+mesh = SubResource("BoxMesh_hgi0t")
+direction = Vector3(0, 1, 0)
+spread = 7.0
+gravity = Vector3(0, 0.3, 0)
+initial_velocity_min = 0.5
+initial_velocity_max = 0.5
+scale_amount_min = 0.01
+scale_amount_max = 0.01
+split_scale = true
+scale_curve_x = null
+scale_curve_y = null
+scale_curve_z = null
+color = Color(0.3183682, 0.32484493, 0.30863693, 1)
+
+[node name="Head" type="MeshInstance3D" parent="Smoker"]
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0, 2.4756238, 0)
+material_override = SubResource("StandardMaterial3D_hcujj")
+mesh = SubResource("SphereMesh_rftnj")
+
+[node name="Cara" type="Node3D" parent="Smoker/Head"]
+
+[node name="OjoD" type="MeshInstance3D" parent="Smoker/Head/Cara"]
+transform = Transform3D(0.1, 0, 0, 0, 0.12, 0, 0, 0, 0.1, -0.154, 0.147, 0.45)
+material_override = SubResource("StandardMaterial3D_rftnj")
+mesh = SubResource("SphereMesh_0or06")
+
+[node name="OjoI" type="MeshInstance3D" parent="Smoker/Head/Cara"]
+transform = Transform3D(0.1, 0, 0, 0, 0.12, 0, 0, 0, 0.1, 0.154, 0.147, 0.45)
+material_override = SubResource("StandardMaterial3D_rftnj")
+mesh = SubResource("SphereMesh_0or06")
+
+[node name="Boca" type="MeshInstance3D" parent="Smoker/Head/Cara"]
+transform = Transform3D(0.12, 0, 0, 0, -4.3711396e-11, -0.09, 0, 0.001, -3.934025e-09, 0, -0.081362724, 0.4975445)
+mesh = SubResource("CylinderMesh_afc6g")
+surface_material_override/0 = SubResource("StandardMaterial3D_iupgd")
+
+[node name="GrafoEstrellaX" type="Node3D" parent="."]
+visible = false
+script = ExtResource("10_5e3jd")
+
+[node name="GrafoCubos" type="Node3D" parent="."]
+visible = false
+script = ExtResource("11_1xgag")
