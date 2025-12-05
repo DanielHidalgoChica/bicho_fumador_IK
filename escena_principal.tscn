@@ -10,8 +10,8 @@
 [ext_resource type="Script" uid="uid://djd71yyu2na4w" path="res://scripts/nodos/wrist_pivot_pitch.gd" id="6_iupgd"]
 [ext_resource type="ArrayMesh" uid="uid://804y8dhsa0sw" path="res://modelos_3D/cigarret/model.obj" id="8_lhnnm"]
 [ext_resource type="Script" uid="uid://dhburowo3yuox" path="res://scripts/nodos/piti.gd" id="9_hgi0t"]
-[ext_resource type="Script" uid="uid://ctwr1os3sc60u" path="res://adicionales/grafo_estrella_x.gd" id="10_5e3jd"]
-[ext_resource type="Script" uid="uid://5c6tormmvcm8" path="res://adicionales/grafo_cubos.gd" id="11_1xgag"]
+[ext_resource type="Script" uid="uid://07r8nie7a7or" path="res://IKSolver.gd" id="11_1xgag"]
+[ext_resource type="Script" uid="uid://jn2r7nist35t" path="res://controller.gd" id="12_awcrs"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hcujj"]
 albedo_color = Color(0.08414119, 0.5793243, 0.9617589, 1)
@@ -75,7 +75,7 @@ skeleton = NodePath("../..")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.54845816, 0.60881734, 0)
 
 [node name="ShoulderPivot" type="Node3D" parent="Smoker/Body/Arm"]
-transform = Transform3D(1, 0, 0, 0, 0.4524347, 0.8917975, 0, -0.8917975, 0.4524347, 0, 3.8146973e-06, 0)
+transform = Transform3D(1, 0, 0, 0, 0.3713678, 0.92848575, 0, -0.92848575, 0.3713678, 0, 3.8146973e-06, 0)
 script = ExtResource("4_rftnj")
 
 [node name="ShoulderMesh" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot"]
@@ -86,7 +86,7 @@ mesh = SubResource("CylinderMesh_0or06")
 transform = Transform3D(1.0000001, 0, 0, 0, 1.0000001, 0, 0, 0, 1, 0, -0.5131948, -1.1920929e-07)
 
 [node name="ElbowPivot" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm"]
-transform = Transform3D(0.9342044, -0.35673797, 0, 0.35673797, 0.9342044, 0, 0, 0, 0.99999994, 0, 0, 0)
+transform = Transform3D(0.59341884, -0.80489373, 0, 0.80489373, 0.59341884, 0, 0, 0, 0.99999994, 0, 0, 0)
 script = ExtResource("5_0or06")
 
 [node name="AntebrazoMesh" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot"]
@@ -98,10 +98,11 @@ skeleton = NodePath("../../..")
 transform = Transform3D(1.0000001, 0, 0, 0, 1.0000001, 0, 0, -1.19209275e-07, 1.0000001, 0, -0.50813454, 6.0574344e-08)
 
 [node name="WristPivotRoll" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist"]
+transform = Transform3D(0.8862036, 0, -0.46329603, 0, 1, 0, 0.46329603, 0, 0.8862036, 0, 0, 0)
 script = ExtResource("6_awcrs")
 
 [node name="WristPivotPitch" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivotRoll"]
-transform = Transform3D(0.9999999, -2.9802322e-08, 1.4901161e-08, 0, 0.99999994, 0, 0, 2.9802322e-08, 1, 0, 0, 0)
+transform = Transform3D(0.90996116, -0.4146932, 0, 0.41469318, 0.9099612, 0, 0, 0, 1, 0, 0, 0)
 script = ExtResource("6_iupgd")
 
 [node name="Hand" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivotRoll/WristPivotPitch"]
@@ -166,10 +167,16 @@ transform = Transform3D(0.12, 0, 0, 0, -4.3711396e-11, -0.09, 0, 0.001, -3.93402
 mesh = SubResource("CylinderMesh_afc6g")
 surface_material_override/0 = SubResource("StandardMaterial3D_iupgd")
 
-[node name="GrafoEstrellaX" type="Node3D" parent="."]
-visible = false
-script = ExtResource("10_5e3jd")
-
-[node name="GrafoCubos" type="Node3D" parent="."]
-visible = false
+[node name="IKSolver3D" type="Node3D" parent="."]
 script = ExtResource("11_1xgag")
+shoulder_pivot_path = NodePath("../Smoker/Body/Arm/ShoulderPivot")
+elbow_pivot_path = NodePath("../Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot")
+wrist_roll_pivot_path = NodePath("../Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivotRoll")
+wrist_pitch_pivot_path = NodePath("../Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivotRoll/WristPivotPitch")
+mouth_target_path = NodePath("../Smoker/Head/Cara/Boca")
+mouth_end_path = NodePath("../Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivotRoll/WristPivotPitch/Hand/Piti/MouthEnd")
+fire_end_path = NodePath("../Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivotRoll/WristPivotPitch/Hand/Piti/FireEnd")
+
+[node name="Controller" type="Node" parent="." node_paths=PackedStringArray("ik_solver")]
+script = ExtResource("12_awcrs")
+ik_solver = NodePath("../IKSolver3D")
