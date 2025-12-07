@@ -12,7 +12,7 @@ class_name IKSolver3D
 @export var mouth_end_path: NodePath
 @export var fire_end_path: NodePath
 
-@export var tolerance := 0.02        # en metros, por ejemplo
+@export var tolerance := 0.04        # en metros, por ejemplo
 @export var step_max_deg := 10    # damping por paso (luego se usará en step)
 
 
@@ -71,8 +71,8 @@ func _ready() -> void:
 
 
 	# 6) Límites por joint (en rad). Ajusta a tus rangos reales:
-	j_min = [deg_to_rad(-180), deg_to_rad(0),   deg_to_rad(0), deg_to_rad(-80)]
-	j_max = [deg_to_rad(+0), deg_to_rad(+90), deg_to_rad(+120), deg_to_rad(+80)]
+	j_min = [deg_to_rad(-180), deg_to_rad(0),   deg_to_rad(-130), deg_to_rad(-60)]
+	j_max = [deg_to_rad(+0), deg_to_rad(+90), deg_to_rad(-40), deg_to_rad(+60)]
 
 	# Sanidad de las longitudes
 	assert(j_nodes.size() == j_axis_idx.size())
