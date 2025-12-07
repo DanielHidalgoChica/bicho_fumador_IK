@@ -13,7 +13,7 @@ class_name IKSolver3D
 @export var fire_end_path: NodePath
 
 @export var tolerance := 0.02        # en metros, por ejemplo
-@export var step_max_deg := 15.0     # damping por paso (luego se usará en step)
+@export var step_max_deg := 10    # damping por paso (luego se usará en step)
 
 
 # --- Arrays “lógicos” del solver ---
@@ -71,8 +71,8 @@ func _ready() -> void:
 
 
 	# 6) Límites por joint (en rad). Ajusta a tus rangos reales:
-	j_min = [deg_to_rad(-180), deg_to_rad(-180),   deg_to_rad(-180), deg_to_rad(-180)]
-	j_max = [deg_to_rad(+180), deg_to_rad(+180), deg_to_rad(+180), deg_to_rad(+180)]
+	j_min = [deg_to_rad(-180), deg_to_rad(0),   deg_to_rad(0), deg_to_rad(-80)]
+	j_max = [deg_to_rad(+0), deg_to_rad(+90), deg_to_rad(+120), deg_to_rad(+80)]
 
 	# Sanidad de las longitudes
 	assert(j_nodes.size() == j_axis_idx.size())
@@ -85,8 +85,14 @@ func _ready() -> void:
 	test_fk_consistency()
 	_debug_chain(cache)
 	
-#--DDEGUB FUNCTIONS
-
+#--DD#DEGUB FUNCTIONS
+func debug_draw_vectors(origin: Vector3, v_cur: Vector3, v_tgt: Vector3, axis: Vector3):
+	# Dibuja línea ROJA hacia donde está el efector ahora
+	DebugDraw3D.draw_line(origin, origin + v_cur, Color.RED) 
+	# Dibuja línea VERDE hacia donde quieres ir
+	DebugDraw3D.draw_line(origin, origin + v_tgt, Color.GREEN)
+	# Dibuja línea AZUL para el eje de rotación
+	DebugDraw3D.draw_line(origin, origin + axis * 0.2, Color.BLUE)
 func print_deg(arr_ang: Array[float]) -> void:
 	var arr_c : Array[float]
 	for i in arr_ang.size():
@@ -248,6 +254,21 @@ func step() -> Array[float]:
 	var end_pos := get_cached_end_position3d(output)
 	var v_cur := end_pos - joint_pos
 	var v_tgt := goal_position - joint_pos
+	# --- INICIO DEBUG VISUAL ---
+	## 1. Dibuja el EJE de rotación actual (AZUL)
+	##    Si este eje no es perpendicular al movimiento que esperas, algo falla en axis_local.
+	#var anim_time : float = 5
+	#DebugDraw3D.draw_arrow(joint_pos, joint_pos + axis_world * 0.5, Color.BLUE, 0.1,false,anim_time)
+#
+	## 2. Dibuja el "Brazo actual" desde este joint hasta el efector (ROJO)
+	#DebugDraw3D.draw_arrow(joint_pos, joint_pos + v_cur, Color.RED, 0.1,false,anim_time)
+#
+	## 3. Dibuja el vector "Ideal" hacia el objetivo (VERDE)
+	#DebugDraw3D.draw_arrow(joint_pos, joint_pos + v_tgt, Color.GREEN, 0.1, false,anim_time)
+#
+	## 4. Etiqueta para saber qué joint está trabajando
+	#DebugDraw3D.draw_text((joint_pos+Vector3(-1,0,0)), "J: " + str(i), 32,Color.WHITE,anim_time)
+	## --- FIN DEBUG VISUAL ---
 	
 	# 4) proyectar al plano perpendicular al eje
 	var v_cur_proj := v_cur - axis_world * (axis_world.dot(v_cur))
@@ -262,6 +283,7 @@ func step() -> Array[float]:
 	v_cur_proj /= len_cur
 	v_tgt_proj /= len_tgt
 	
+	
 	# 5) ángulo con signo entre las proyecciones current y target alrededor de axis_world
 	# como los vectores están normalizados, la norma del producto vectorial es el seno
 	# el producto escalar con el eje es para controlar el signo
@@ -271,7 +293,6 @@ func step() -> Array[float]:
 	
 	var step_max := deg_to_rad(step_max_deg)
 	var delta : float = clamp(correction, -step_max, step_max)
-
 	var new_angle : float = output[i] + delta
 	new_angle = clamp(new_angle, j_min[i], j_max[i])
 	output[i] = new_angle

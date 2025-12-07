@@ -75,7 +75,7 @@ skeleton = NodePath("../..")
 transform = Transform3D(1, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, -0.54845816, 0.60881734, 0)
 
 [node name="ShoulderPivot" type="Node3D" parent="Smoker/Body/Arm"]
-transform = Transform3D(1, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 0, 3.8146973e-06, 0)
+transform = Transform3D(1, 0, 0, 0, 0.03315516, 0.99945015, 0, -0.99945015, 0.03315516, 0, 3.8146973e-06, 0)
 script = ExtResource("4_rftnj")
 
 [node name="ShoulderMesh" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot"]
@@ -95,13 +95,13 @@ mesh = SubResource("CylinderMesh_0or06")
 skeleton = NodePath("../../..")
 
 [node name="Wrist" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot"]
-transform = Transform3D(1.0000001, 0, 0, 0, 1.0000001, 0, 0, -1.19209275e-07, 1.0000001, 0, -0.50813454, 6.0574344e-08)
+transform = Transform3D(1.0000001, 0, 0, 0, 1.0000001, 0, 0, 0, 1.0000001, 0, -0.50813454, 6.0574344e-08)
 
 [node name="WristPivotRoll" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist"]
 script = ExtResource("6_awcrs")
 
 [node name="WristPivotPitch" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivotRoll"]
-transform = Transform3D(-4.3711385e-08, 0.99999994, 0, -0.9999999, -4.3711385e-08, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(0.9999999, 0, 0, 0, 0.99999994, 0, 0, 0, 1, 0, 0, 0)
 script = ExtResource("6_iupgd")
 
 [node name="Hand" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivotRoll/WristPivotPitch"]
