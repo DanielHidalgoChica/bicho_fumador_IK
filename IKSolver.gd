@@ -82,22 +82,9 @@ func _ready() -> void:
 
 	# 7) Rellenar cache leyendo el ángulo actual de cada eje
 	cache = _read_angles_from_scene()
-	test_fk_consistency()
-	_debug_chain(cache)
+
 	
 #--DD#DEGUB FUNCTIONS
-func debug_draw_vectors(origin: Vector3, v_cur: Vector3, v_tgt: Vector3, axis: Vector3):
-	# Dibuja línea ROJA hacia donde está el efector ahora
-	DebugDraw3D.draw_line(origin, origin + v_cur, Color.RED) 
-	# Dibuja línea VERDE hacia donde quieres ir
-	DebugDraw3D.draw_line(origin, origin + v_tgt, Color.GREEN)
-	# Dibuja línea AZUL para el eje de rotación
-	DebugDraw3D.draw_line(origin, origin + axis * 0.2, Color.BLUE)
-func print_deg(arr_ang: Array[float]) -> void:
-	var arr_c : Array[float]
-	for i in arr_ang.size():
-		arr_c.append(arr_ang[i]*360/(2*PI))
-	print(arr_c)
 # Me comprueba que en el estado inicial la posición del efector calculada sea
 # la posición real del efector
 func test_fk_consistency() -> void:
@@ -255,20 +242,20 @@ func step() -> Array[float]:
 	var v_cur := end_pos - joint_pos
 	var v_tgt := goal_position - joint_pos
 	# --- INICIO DEBUG VISUAL ---
-	## 1. Dibuja el EJE de rotación actual (AZUL)
-	##    Si este eje no es perpendicular al movimiento que esperas, algo falla en axis_local.
-	#var anim_time : float = 5
-	#DebugDraw3D.draw_arrow(joint_pos, joint_pos + axis_world * 0.5, Color.BLUE, 0.1,false,anim_time)
-#
-	## 2. Dibuja el "Brazo actual" desde este joint hasta el efector (ROJO)
-	#DebugDraw3D.draw_arrow(joint_pos, joint_pos + v_cur, Color.RED, 0.1,false,anim_time)
-#
-	## 3. Dibuja el vector "Ideal" hacia el objetivo (VERDE)
-	#DebugDraw3D.draw_arrow(joint_pos, joint_pos + v_tgt, Color.GREEN, 0.1, false,anim_time)
-#
-	## 4. Etiqueta para saber qué joint está trabajando
-	#DebugDraw3D.draw_text((joint_pos+Vector3(-1,0,0)), "J: " + str(i), 32,Color.WHITE,anim_time)
-	## --- FIN DEBUG VISUAL ---
+	# 1. Dibuja el EJE de rotación actual (AZUL)
+	#    Si este eje no es perpendicular al movimiento que esperas, algo falla en axis_local.
+	var anim_time : float = 0.2
+	DebugDraw3D.draw_arrow(joint_pos, joint_pos + axis_world * 0.5, Color.BLUE, 0.1,false,anim_time)
+
+	# 2. Dibuja el "Brazo actual" desde este joint hasta el efector (ROJO)
+	DebugDraw3D.draw_arrow(joint_pos, joint_pos + v_cur, Color.RED, 0.1,false,anim_time)
+
+	# 3. Dibuja el vector "Ideal" hacia el objetivo (VERDE)
+	DebugDraw3D.draw_arrow(joint_pos, joint_pos + v_tgt, Color.GREEN, 0.1, false,anim_time)
+
+	# 4. Etiqueta para saber qué joint está trabajando
+	DebugDraw3D.draw_text((joint_pos+Vector3(-1,0,0)), "J: " + str(i), 32,Color.WHITE,anim_time)
+	# --- FIN DEBUG VISUAL ---
 	
 	# 4) proyectar al plano perpendicular al eje
 	var v_cur_proj := v_cur - axis_world * (axis_world.dot(v_cur))
@@ -358,13 +345,6 @@ func get_cached_end_position3d(output: Array[float]) -> Vector3:
 	var last := j_nodes.size() - 1
 	var T := get_cached_transform3d(output, last)
 	return T * current_tip_local
-
-#
-#func count_cached_distance(cache : Array[float], i : int) -> float:
-	#var endpoint = get_cached_end_position(cache, segments.size() - 1)
-	#var position = get_cached_transform(cache, i).origin
-	#return abs(position.distance_to(goal_position) - position.distance_to(endpoint))
-
 
 
 

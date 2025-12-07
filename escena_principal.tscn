@@ -75,7 +75,7 @@ skeleton = NodePath("../..")
 transform = Transform3D(1, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, -0.54845816, 0.60881734, 0)
 
 [node name="ShoulderPivot" type="Node3D" parent="Smoker/Body/Arm"]
-transform = Transform3D(1, 0, 0, 0, -0.09584572, 0.99539614, 0, -0.99539614, -0.09584572, 0, 3.8146973e-06, 0)
+transform = Transform3D(1, 0, 0, 0, 0.11146887, -0.9937678, 0, 0.9937678, 0.11146887, 0, 3.8146973e-06, 0)
 script = ExtResource("4_rftnj")
 
 [node name="ShoulderMesh" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot"]
@@ -86,7 +86,7 @@ mesh = SubResource("CylinderMesh_0or06")
 transform = Transform3D(1.0000001, 0, 0, 0, 1.0000001, 0, 0, 0, 1, 0, -0.5131948, -1.1920929e-07)
 
 [node name="ElbowPivot" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm"]
-transform = Transform3D(0.9681476, -0.25037998, 0, 0.25037998, 0.9681476, 0, 0, 0, 0.99999994, 0, 0, 0)
+transform = Transform3D(0.40354532, 0.9149596, 0, -0.9149596, 0.40354532, 0, 0, 0, 0.99999994, 0, 0, 0)
 script = ExtResource("5_0or06")
 
 [node name="AntebrazoMesh" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot"]
@@ -98,11 +98,11 @@ skeleton = NodePath("../../..")
 transform = Transform3D(1.0000001, 0, 0, 0, 1.0000001, 0, 0, 0, 1.0000001, 0, -0.50813454, 6.0574344e-08)
 
 [node name="WristPivotRoll" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist"]
-transform = Transform3D(0.08889425, 0, 0.99604106, 0, 1, 0, -0.99604106, 0, 0.08889425, 0, 0, 0)
+transform = Transform3D(0.9018325, 0, -0.43208575, 0, 1, 0, 0.43208575, 0, 0.9018325, 0, 0, 0)
 script = ExtResource("6_awcrs")
 
 [node name="WristPivotPitch" type="Node3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivotRoll"]
-transform = Transform3D(0.9999999, 0, 0, 0, 0.99999994, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(0.9258705, -0.37784076, 0, 0.37784073, 0.92587054, 0, 0, 0, 1, 0, 0, 0)
 script = ExtResource("6_iupgd")
 
 [node name="Hand" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wrist/WristPivotRoll/WristPivotPitch"]
