@@ -12,7 +12,7 @@ class_name IKSolver3D
 @export var mouth_end_path: NodePath
 @export var fire_end_path: NodePath
 
-@export var tolerance := 0.04        # en metros, por ejemplo
+@export var tolerance := 0.004       # en metros, por ejemplo
 @export var step_max_deg := 10    # damping por paso (luego se usará en step)
 
 # Para los tips
@@ -35,6 +35,7 @@ var goal_position := Vector3.ZERO
 
 # cache de ángulos (uno por joint)
 var cache: Array[float] = []
+var default_pose : Array[float] = []
 
 # Para el movimiento suave y cálculo offline
 var target_angles: Array[float] = [] # Aquí guardamos el destino final
@@ -73,8 +74,9 @@ func _ready() -> void:
 	tip_mouth_local = wrist_pitch.to_local(mouth_end.global_position)
 	tip_fire_local  = wrist_pitch.to_local(fire_end.global_position)
 	
-	# Por defecto, luego se cambia en los draws
-	current_tip_local = tip_mouth_local
+	# Por defecto, luego se cambia en el controller y se comprueba en los draws
+	use_cig_mouth = true
+	use_cig_tip = false
 
 
 	# 6) Límites por joint (en rad). Ajusta a tus rangos reales:
@@ -90,6 +92,8 @@ func _ready() -> void:
 	# 7) Rellenar cache leyendo el ángulo actual de cada eje
 	cache = _read_angles_from_scene()
 	target_angles = _read_angles_from_scene()
+	
+	default_pose = cache.duplicate()
 
 func _process(delta: float) -> void:
 	# Si tenemos un objetivo válido y el suavizado está activo
@@ -173,13 +177,16 @@ func _read_angles_from_scene() -> Array[float]:
 
 
 func draw_solve():
-	fill_cache()
+	#fill_cache()
+	cache = default_pose.duplicate()
 	if (use_cig_mouth):
 		current_tip_local = tip_mouth_local
 	elif (use_cig_tip):
 		current_tip_local = tip_fire_local
 	goal_position = get_node(mouth_target_path).global_transform.origin
 	# Calculamos la solución matemática (instantánea)
+	last_touched_joint = 0
+	print("")
 	var solution = solve() 
 	
 	# EN LUGAR DE set_pose(solution), AHORA HACEMOS ESTO:
@@ -187,7 +194,7 @@ func draw_solve():
 # TODO clean up draw solve from solve
 func solve() -> Array[float]:
 	var iterations : int = 0
-	var it_limit : int = 500
+	var it_limit : int = 10000
 	while (not cache_goal_reached() and iterations < it_limit): 
 		cache = step()
 		iterations += 1
@@ -207,11 +214,18 @@ func draw_step() -> void:
 	var pred_end := get_cached_end_position3d(out)
 	var pred_dist := pred_end.distance_to(goal_position)
 
-	set_pose(out)                                    # aplicamos la POSE
+	set_pose(out)              
+						  # aplicamos la POSE
 
 
 	var mouth_end := get_node(mouth_end_path) as Node3D
-	var real_end := mouth_end.global_transform.origin
+	var fire_end := get_node(fire_end_path) as Node3D
+	var real_end : Vector3
+	if  (use_cig_mouth):
+		real_end = mouth_end.global_transform.origin
+	elif (use_cig_tip):
+		real_end = fire_end.global_transform.origin
+		
 	var real_dist := real_end.distance_to(goal_position)
 	
 	print("pred_dist=", pred_dist, "  real_dist=", real_dist)
