@@ -15,8 +15,7 @@ class_name IKSolver3D
 @export var tolerance := 0.04        # en metros, por ejemplo
 @export var step_max_deg := 10    # damping por paso (luego se usará en step)
 
-
-# --- Arrays “lógicos” del solver ---
+# --- Arrays “lógicos” del solver ---1
 var j_nodes: Array[Node3D] = []          # pivotes en orden hombro→codo→muñeca(roll)→muñeca(pitch)
 var j_axis_idx: Array[int] = []    # ejes locales de cada joint (X/Y/Z)
 var j_offset_local: Array[Vector3] = []  # offset local i→i+1 (último no se usa); roll→pitch = Vector3.ZERO
@@ -32,6 +31,11 @@ var goal_position := Vector3.ZERO
 
 # cache de ángulos (uno por joint)
 var cache: Array[float] = []
+
+# Para el movimiento suave y cálculo offline
+var target_angles: Array[float] = [] # Aquí guardamos el destino final
+@export var smoothing_speed: float = 8.0 # Velocidad de la animación
+var use_smoothing: bool = true # Para poder desactivarlo si usas el debug "step"
 
 func _ready() -> void:
 	# 1) Resolver nodos de la escena
@@ -82,8 +86,13 @@ func _ready() -> void:
 
 	# 7) Rellenar cache leyendo el ángulo actual de cada eje
 	cache = _read_angles_from_scene()
+	target_angles = _read_angles_from_scene()
 
-	
+func _process(delta: float) -> void:
+	# Si tenemos un objetivo válido y el suavizado está activo
+	if use_smoothing and target_angles.size() == j_nodes.size():
+		_apply_pose_smooth(delta)
+		
 #--DD#DEGUB FUNCTIONS
 # Me comprueba que en el estado inicial la posición del efector calculada sea
 # la posición real del efector
@@ -163,15 +172,18 @@ func _read_angles_from_scene() -> Array[float]:
 func draw_solve():
 	fill_cache()
 	goal_position = get_node(mouth_target_path).global_transform.origin
-	set_pose(solve())
-
+	# Calculamos la solución matemática (instantánea)
+	var solution = solve() 
+	
+	# EN LUGAR DE set_pose(solution), AHORA HACEMOS ESTO:
+	target_angles = solution # Guardamos el destino, el _process hará el movimiento
 # TODO clean up draw solve from solve
 func solve() -> Array[float]:
 	var iterations : int = 0
-	while (not cache_goal_reached() and iterations < 50): 
+	var it_limit : int = 500
+	while (not cache_goal_reached() and iterations < it_limit): 
 		cache = step()
 		iterations += 1
-	
 	return cache
 
 
@@ -213,8 +225,21 @@ func set_pose(angles: Array[float]) -> void:
 			Vector3.AXIS_Z:
 				e.z = a
 		j_nodes[i].rotation = e
-
-
+func _apply_pose_smooth(delta: float) -> void:
+	for i in j_nodes.size():
+		var current_euler := j_nodes[i].rotation
+		var goal := target_angles[i]
+		var weight = smoothing_speed * delta
+		
+		match j_axis_idx[i]:
+			Vector3.AXIS_X:
+				current_euler.x = lerp_angle(current_euler.x, goal, weight)
+			Vector3.AXIS_Y:
+				current_euler.y = lerp_angle(current_euler.y, goal, weight)
+			Vector3.AXIS_Z:
+				current_euler.z = lerp_angle(current_euler.z, goal, weight)
+		
+		j_nodes[i].rotation = current_euler
 #helper
 func _axis_local(i: int) -> Vector3:
 	return AXIS_UNIT[j_axis_idx[i]]
@@ -244,18 +269,20 @@ func step() -> Array[float]:
 	# --- INICIO DEBUG VISUAL ---
 	# 1. Dibuja el EJE de rotación actual (AZUL)
 	#    Si este eje no es perpendicular al movimiento que esperas, algo falla en axis_local.
-	var anim_time : float = 0.2
-	DebugDraw3D.draw_arrow(joint_pos, joint_pos + axis_world * 0.5, Color.BLUE, 0.1,false,anim_time)
+	var anim_time : float = 5
+	var debug = false
+	if (debug):
+		DebugDraw3D.draw_arrow(joint_pos, joint_pos + axis_world * 0.5, Color.BLUE, 0.1,false,anim_time)
 
-	# 2. Dibuja el "Brazo actual" desde este joint hasta el efector (ROJO)
-	DebugDraw3D.draw_arrow(joint_pos, joint_pos + v_cur, Color.RED, 0.1,false,anim_time)
+		# 2. Dibuja el "Brazo actual" desde este joint hasta el efector (ROJO)
+		DebugDraw3D.draw_arrow(joint_pos, joint_pos + v_cur, Color.RED, 0.1,false,anim_time)
 
-	# 3. Dibuja el vector "Ideal" hacia el objetivo (VERDE)
-	DebugDraw3D.draw_arrow(joint_pos, joint_pos + v_tgt, Color.GREEN, 0.1, false,anim_time)
+		# 3. Dibuja el vector "Ideal" hacia el objetivo (VERDE)
+		DebugDraw3D.draw_arrow(joint_pos, joint_pos + v_tgt, Color.GREEN, 0.1, false,anim_time)
 
-	# 4. Etiqueta para saber qué joint está trabajando
-	DebugDraw3D.draw_text((joint_pos+Vector3(-1,0,0)), "J: " + str(i), 32,Color.WHITE,anim_time)
-	# --- FIN DEBUG VISUAL ---
+		# 4. Etiqueta para saber qué joint está trabajando
+		DebugDraw3D.draw_text((joint_pos+Vector3(-1,0,0)), "J: " + str(i), 32,Color.WHITE,anim_time)
+		# --- FIN DEBUG VISUAL ---
 	
 	# 4) proyectar al plano perpendicular al eje
 	var v_cur_proj := v_cur - axis_world * (axis_world.dot(v_cur))
@@ -284,7 +311,6 @@ func step() -> Array[float]:
 	new_angle = clamp(new_angle, j_min[i], j_max[i])
 	output[i] = new_angle
 	
-	print("i=", i, " dist=", get_cached_end_position3d(output).distance_to(goal_position))
 	return output
 
 
