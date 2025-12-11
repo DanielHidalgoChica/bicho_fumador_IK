@@ -15,6 +15,10 @@ class_name IKSolver3D
 @export var tolerance := 0.04        # en metros, por ejemplo
 @export var step_max_deg := 10    # damping por paso (luego se usará en step)
 
+# Para los tips
+var use_cig_mouth : bool
+var use_cig_tip : bool
+
 # --- Arrays “lógicos” del solver ---1
 var j_nodes: Array[Node3D] = []          # pivotes en orden hombro→codo→muñeca(roll)→muñeca(pitch)
 var j_axis_idx: Array[int] = []    # ejes locales de cada joint (X/Y/Z)
@@ -69,8 +73,7 @@ func _ready() -> void:
 	tip_mouth_local = wrist_pitch.to_local(mouth_end.global_position)
 	tip_fire_local  = wrist_pitch.to_local(fire_end.global_position)
 	
-	# Ponemos provisionalmente current_tip_local como tip_mouth_local, es decir
-	# que el efector sea el filtro del cigarro
+	# Por defecto, luego se cambia en los draws
 	current_tip_local = tip_mouth_local
 
 
@@ -171,6 +174,10 @@ func _read_angles_from_scene() -> Array[float]:
 
 func draw_solve():
 	fill_cache()
+	if (use_cig_mouth):
+		current_tip_local = tip_mouth_local
+	elif (use_cig_tip):
+		current_tip_local = tip_fire_local
 	goal_position = get_node(mouth_target_path).global_transform.origin
 	# Calculamos la solución matemática (instantánea)
 	var solution = solve() 
@@ -189,7 +196,10 @@ func solve() -> Array[float]:
 
 func draw_step() -> void:
 	fill_cache()
-
+	if (use_cig_mouth):
+		current_tip_local = tip_mouth_local
+	elif (use_cig_tip):
+		current_tip_local = tip_fire_local
 	var mouth_target := get_node(mouth_target_path) as Node3D
 	goal_position = mouth_target.global_transform.origin
 
@@ -198,13 +208,12 @@ func draw_step() -> void:
 	var pred_dist := pred_end.distance_to(goal_position)
 
 	set_pose(out)                                    # aplicamos la POSE
-	# (opcional) espera un frame si quieres asegurarte de la propagación
-	# await get_tree().process_frame
+
 
 	var mouth_end := get_node(mouth_end_path) as Node3D
 	var real_end := mouth_end.global_transform.origin
 	var real_dist := real_end.distance_to(goal_position)
-
+	
 	print("pred_dist=", pred_dist, "  real_dist=", real_dist)
 	print("goal=", goal_position, "  pred_end=", pred_end, "  real_end=", real_end)
 
