@@ -7,7 +7,6 @@ class_name IKSolver3D
 @export var wrist_roll_pivot_path: NodePath      # Y (roll)
 @export var wrist_pitch_pivot_path: NodePath     # Z (pitch)
 
-@export var mouth_target_path: NodePath
 
 @export var mouth_end_path: NodePath
 @export var fire_end_path: NodePath
@@ -17,7 +16,6 @@ class_name IKSolver3D
 
 # Para los tips
 var use_cig_mouth : bool
-var use_cig_tip : bool
 
 # --- Arrays “lógicos” del solver ---1
 var j_nodes: Array[Node3D] = []          # pivotes en orden hombro→codo→muñeca(roll)→muñeca(pitch)
@@ -33,13 +31,17 @@ var tip_fire_local := Vector3.ZERO
 var current_tip_local := Vector3.ZERO	# usa tip_mouth_local o tip_fire_local según el caso
 var goal_position := Vector3.ZERO
 
+# Target
+var target_node : Node3D
+
+
 # cache de ángulos (uno por joint)
 var cache: Array[float] = []
 var default_pose : Array[float] = []
 
 # Para el movimiento suave y cálculo offline
 var target_angles: Array[float] = [] # Aquí guardamos el destino final
-@export var smoothing_speed: float = 8.0 # Velocidad de la animación
+@export var smoothing_speed: float = 4.0 # Velocidad de la animación
 var use_smoothing: bool = true # Para poder desactivarlo si usas el debug "step"
 
 func _ready() -> void:
@@ -76,7 +78,6 @@ func _ready() -> void:
 	
 	# Por defecto, luego se cambia en el controller y se comprueba en los draws
 	use_cig_mouth = true
-	use_cig_tip = false
 
 
 	# 6) Límites por joint (en rad). Ajusta a tus rangos reales:
@@ -99,64 +100,8 @@ func _process(delta: float) -> void:
 	# Si tenemos un objetivo válido y el suavizado está activo
 	if use_smoothing and target_angles.size() == j_nodes.size():
 		_apply_pose_smooth(delta)
-		
-#--DD#DEGUB FUNCTIONS
-# Me comprueba que en el estado inicial la posición del efector calculada sea
-# la posición real del efector
-func test_fk_consistency() -> void:
-	fill_cache()             # lee los ángulos REALES de la escena
-	var out := cache.duplicate()
-	var pred_end := get_cached_end_position3d(out)   # FK con esos mismos ángulos
-	var real_end := (get_node(mouth_end_path) as Node3D).global_transform.origin
-	print("FK error = ", pred_end.distance_to(real_end))
-
-func debug_compare_basis(joint_idx: int, fk_transform: Transform3D):
-	var real_node = j_nodes[joint_idx]
-	var real_basis = real_node.global_transform.basis
-	var fk_basis = fk_transform.basis
-	
-	print("\n--- DEBUG JOINT ", joint_idx, " ---")
-	print("Real Euler (deg): ", _v3_to_deg(real_basis.get_euler()))
-	print("FK   Euler (deg): ", _v3_to_deg(fk_basis.get_euler()))
-	
-	# Producto punto de los vectores base para ver alineación
-	# Si da 1.0 están alineados, -1.0 opuestos, 0.0 perpendiculares
-	var x_align = real_basis.x.dot(fk_basis.x)
-	var y_align = real_basis.y.dot(fk_basis.y)
-	var z_align = real_basis.z.dot(fk_basis.z)
-	
-	print("Alineación X: ", x_align)
-	print("Alineación Y: ", y_align)
-	print("Alineación Z: ", z_align)
-
-	if x_align < 0.99 or y_align < 0.99 or z_align < 0.99:
-		print("¡DESVIACIÓN DETECTADA! La orientación no coincide.")
-
-func _v3_to_deg(v: Vector3) -> Vector3:
-	return Vector3(rad_to_deg(v.x), rad_to_deg(v.y), rad_to_deg(v.z))
-func _base_of_chain() -> Transform3D:
-	var root := j_nodes[0]
-	var parent := root.get_parent()
-	if parent is Node3D:
-		return parent.global_transform
-	return Transform3D() # identidad si no hay padre Node3D
-
-func _debug_chain(out_angles: Array[float]) -> void:
-	var T := _base_of_chain()                 # marco del padre del hombro
-	print("\n== CADENA DEBUG ==")
-	for i in j_nodes.size():
-		var transform = get_cached_transform3d(out_angles, i)
-		debug_compare_basis(i, transform)
-		var fk_pos := get_cached_transform3d(out_angles,i).origin
-		
-		var real_pos := j_nodes[i].global_transform.origin
-		var delta := fk_pos.distance_to(real_pos)
-		
-		print("joint ", i, "  Δpos = ", str(delta).pad_decimals(4),
-			  "   fk=", fk_pos, "   real=", real_pos)
 
 
-# ---ENDDEBUG
 func _read_angles_from_scene() -> Array[float]:
 	var out: Array[float] = []
 	for i in j_nodes.size():
@@ -173,66 +118,44 @@ func _read_angles_from_scene() -> Array[float]:
 	return out
 
 
-
-
-
 func draw_solve():
 	#fill_cache()
 	cache = default_pose.duplicate()
 	if (use_cig_mouth):
 		current_tip_local = tip_mouth_local
-	elif (use_cig_tip):
+	else:
 		current_tip_local = tip_fire_local
-	goal_position = get_node(mouth_target_path).global_transform.origin
+	goal_position = target_node.global_transform.origin
 	# Calculamos la solución matemática (instantánea)
 	last_touched_joint = 0
-	print("")
 	var solution = solve() 
 	
 	# EN LUGAR DE set_pose(solution), AHORA HACEMOS ESTO:
 	target_angles = solution # Guardamos el destino, el _process hará el movimiento
-# TODO clean up draw solve from solve
+	
 func solve() -> Array[float]:
 	var iterations : int = 0
 	var it_limit : int = 10000
+	var debug = false
 	while (not cache_goal_reached() and iterations < it_limit): 
-		cache = step()
+		cache = step(debug)
 		iterations += 1
 	return cache
 
+func return_to_default_smooth() -> void:
+	target_angles = default_pose
 
 func draw_step() -> void:
 	fill_cache()
 	if (use_cig_mouth):
 		current_tip_local = tip_mouth_local
-	elif (use_cig_tip):
+	else:
 		current_tip_local = tip_fire_local
-	var mouth_target := get_node(mouth_target_path) as Node3D
-	goal_position = mouth_target.global_transform.origin
-
-	var out := step()                                # 1 paso (PREDICCIÓN)
-	var pred_end := get_cached_end_position3d(out)
-	var pred_dist := pred_end.distance_to(goal_position)
-
-	set_pose(out)              
-						  # aplicamos la POSE
-
-
-	var mouth_end := get_node(mouth_end_path) as Node3D
-	var fire_end := get_node(fire_end_path) as Node3D
-	var real_end : Vector3
-	if  (use_cig_mouth):
-		real_end = mouth_end.global_transform.origin
-	elif (use_cig_tip):
-		real_end = fire_end.global_transform.origin
-		
-	var real_dist := real_end.distance_to(goal_position)
+	goal_position = target_node.global_transform.origin
 	
-	print("pred_dist=", pred_dist, "  real_dist=", real_dist)
-	print("goal=", goal_position, "  pred_end=", pred_end, "  real_end=", real_end)
-
-
-
+	var debug = true
+	var out := step(debug)
+	set_pose(out)              
 
 # Escribe el ángulo correspondiente a cada articulación
 # con lo que hay en el array que se le pase
@@ -248,6 +171,8 @@ func set_pose(angles: Array[float]) -> void:
 			Vector3.AXIS_Z:
 				e.z = a
 		j_nodes[i].rotation = e
+		
+		
 func _apply_pose_smooth(delta: float) -> void:
 	for i in j_nodes.size():
 		var current_euler := j_nodes[i].rotation
@@ -263,13 +188,14 @@ func _apply_pose_smooth(delta: float) -> void:
 				current_euler.z = lerp_angle(current_euler.z, goal, weight)
 		
 		j_nodes[i].rotation = current_euler
-#helper
+
+
 func _axis_local(i: int) -> Vector3:
 	return AXIS_UNIT[j_axis_idx[i]]
 	
 var last_touched_joint : int = 0
 
-func step() -> Array[float]:
+func step(debug) -> Array[float]:
 	
 	
 	var output := cache.duplicate()
@@ -289,11 +215,11 @@ func step() -> Array[float]:
 	var end_pos := get_cached_end_position3d(output)
 	var v_cur := end_pos - joint_pos
 	var v_tgt := goal_position - joint_pos
+	
 	# --- INICIO DEBUG VISUAL ---
 	# 1. Dibuja el EJE de rotación actual (AZUL)
 	#    Si este eje no es perpendicular al movimiento que esperas, algo falla en axis_local.
-	var anim_time : float = 5
-	var debug = false
+	var anim_time : float = 0.1
 	if (debug):
 		DebugDraw3D.draw_arrow(joint_pos, joint_pos + axis_world * 0.5, Color.BLUE, 0.1,false,anim_time)
 
