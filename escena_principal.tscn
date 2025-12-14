@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://cakt72b13m6pq"]
+[gd_scene load_steps=28 format=3 uid="uid://cakt72b13m6pq"]
 
 [ext_resource type="Script" uid="uid://cx0njjlqgmigb" path="res://scripts/camara_3d_orbital_simple.gd" id="1_jdg2m"]
 [ext_resource type="Script" uid="uid://phkh7set0rci" path="res://scripts/script_raiz.gd" id="1_r0811"]
@@ -43,6 +43,15 @@ albedo_color = Color(0, 0, 0, 1)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iupgd"]
 albedo_color = Color(0, 0, 0, 1)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_34kg7"]
+albedo_color = Color(0.15612662, 0.6418633, 1.92523e-07, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_awcrs"]
+albedo_color = Color(0.15612662, 0.6418633, 1.92523e-07, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sskua"]
+albedo_color = Color(0.15612662, 0.6418633, 1.92523e-07, 1)
+
 [node name="Escena principal" type="Node3D"]
 script = ExtResource("1_r0811")
 
@@ -75,7 +84,7 @@ skeleton = NodePath("../..")
 transform = Transform3D(1, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, -0.54845816, 0.60881734, 0)
 
 [node name="ShoulderPivot" type="Node3D" parent="Smoker/Body/Arm"]
-transform = Transform3D(1, 0, 0, 0, 0.9999999, 0, 0, 0, 0.9999999, 0, 3.8146973e-06, 0)
+transform = Transform3D(1, 0, 0, 0, 0.2537579, 0.96726763, 0, -0.96726763, 0.2537579, 0, 3.8146973e-06, 0)
 script = ExtResource("4_rftnj")
 
 [node name="ShoulderMesh" type="MeshInstance3D" parent="Smoker/Body/Arm/ShoulderPivot"]
@@ -179,3 +188,22 @@ fire_end_path = NodePath("../Smoker/Body/Arm/ShoulderPivot/Forearm/ElbowPivot/Wr
 [node name="Controller" type="Node" parent="." node_paths=PackedStringArray("ik_solver")]
 script = ExtResource("12_awcrs")
 ik_solver = NodePath("../IKSolver3D")
+
+[node name="Tablero" type="CSGCombiner3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.1, -0.08)
+material_override = SubResource("StandardMaterial3D_34kg7")
+
+[node name="CinlindroExterior" type="CSGCylinder3D" parent="Tablero"]
+transform = Transform3D(1.75, 0, 0, 0, 0.02, 0, 0, 0, 1.7, -0.65, -0.9, 0.5)
+material_override = SubResource("StandardMaterial3D_awcrs")
+sides = 64
+
+[node name="CilindroInterior" type="CSGCylinder3D" parent="Tablero"]
+transform = Transform3D(1.45, 0, 0, 0, 0.15, 0, 0, 0, 1.4, -0.65, -0.9, 0.5)
+operation = 2
+sides = 64
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Tablero"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 1)
+material_override = SubResource("StandardMaterial3D_sskua")
+operation = 1
