@@ -42,7 +42,7 @@ var default_pose : Array[float] = []
 # Para el movimiento suave y cálculo offline
 var target_angles: Array[float] = [] # Aquí guardamos el destino final
 @export var smoothing_speed: float = 4.0 # Velocidad de la animación
-var use_smoothing: bool = true # Para poder desactivarlo si usas el debug "step"
+var use_smoothing: bool = false # Pa que de primeras te puedas mover
 
 func _ready() -> void:
 	# 1) Resolver nodos de la escena

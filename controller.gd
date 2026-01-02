@@ -55,7 +55,6 @@ func raycast_from_mouse(mouse_pos: Vector2):
 	
 	var query = PhysicsRayQueryParameters3D.create(origin, end)
 	query.collide_with_bodies = true
-	
 	# 3. Lanzamos el rayo y obtenemos el resultado
 	var result = space_state.intersect_ray(query)
 	

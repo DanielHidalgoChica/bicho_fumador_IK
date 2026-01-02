@@ -1,8 +1,7 @@
-[gd_scene load_steps=30 format=3 uid="uid://cakt72b13m6pq"]
+[gd_scene load_steps=29 format=3 uid="uid://cakt72b13m6pq"]
 
 [ext_resource type="Script" uid="uid://cx0njjlqgmigb" path="res://scripts/camara_3d_orbital_simple.gd" id="1_jdg2m"]
 [ext_resource type="Script" uid="uid://phkh7set0rci" path="res://scripts/script_raiz.gd" id="1_r0811"]
-[ext_resource type="Script" uid="uid://dpvavkpyi3njn" path="res://scripts/ejes3D.gd" id="3_hcujj"]
 [ext_resource type="Script" uid="uid://cxbf3m06pdq80" path="res://scripts/nodos/shoulder_pivot.gd" id="4_rftnj"]
 [ext_resource type="Script" uid="uid://c1v3c8f77arlm" path="res://scripts/nodos/elbow_pivot.gd" id="5_0or06"]
 [ext_resource type="ArrayMesh" uid="uid://ckwcwm5ompuvx" path="res://modelos_3D/hand/hand.OBJ" id="6_afc6g"]
@@ -71,10 +70,6 @@ near = 0.001
 script = ExtResource("1_jdg2m")
 
 [node name="GraphP3" type="Node3D" parent="."]
-
-[node name="Ejes3D" type="Node3D" parent="."]
-visible = false
-script = ExtResource("3_hcujj")
 
 [node name="Smoker" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
